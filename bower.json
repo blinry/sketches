@@ -1,0 +1,18 @@
+{
+  "name": "sketches",
+  "homepage": "https://github.com/blinry/sketches",
+  "description": "Random generative or interactive sketches",
+  "main": "",
+  "authors": [
+    "Sebastian Morr <sebastian@morr.cc>"
+  ],
+  "license": "GPLv3+",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "bower_components"
+  ],
+  "dependencies": {
+    "paper": "^0.11.5"
+  }
+}

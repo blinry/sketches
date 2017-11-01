@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            html, body {
+                margin: 0;
+                overflow: hidden;
+                height: 100%;
+                cursor: none;
+            }
+            canvas {
+                width: 100%;
+                height: 100%;
+            }
+            body {
+                background: black;
+            }
+        </style>
+        <script type="text/javascript" src="../bower_components/paper/dist/paper-full.js"></script>
+        <script type="text/paperscript" canvas="canvas">
+            var points = 3;
+            var distance = 20;
+            var width = 40;
+            var gameOver = false;
+
+            var tail = new Path({
+                strokeColor: "green",
+                strokeWidth: width,
+                strokeCap: "round"
+            });
+
+            var segments = [
+                new Point(-10, -20-width/6),
+                new Point(0, -10-width/6),
+                new Point(0, 0-width/6),
+                new Point(0, -10-width/6),
+                new Point(10, -20-width/6),
+            ];
+            var tongue = new Path(segments);
+            tongue.strokeColor = "red";
+            tongue.strokeWidth = 5;
+
+            var eye1 = new Path.Circle(new Point(-width/4, 0), 8);
+            eye1.fillColor = "white";
+            var eye2 = new Path.Circle(new Point(width/4, 0), 8);
+            eye2.fillColor = "white";
+
+            var pupil1 = new Path.Circle(new Point(-width/4, 0), 5);
+            pupil1.fillColor = "black";
+            var pupil2 = new Path.Circle(new Point(width/4, 0), 5);
+            pupil2.fillColor = "black";
+            var pupils = new Group(pupil1, pupil2);
+
+            var head = new Group(eye1, eye2, pupils, tongue);
+            head.applyMatrix = false;
+            head.pivot = new Point(0,0);
+
+            var apple = new Path.Circle(Point.random()*view.size, 10);
+            apple.fillColor = "white";
+
+            var start = view.center;
+            for (var i = 0; i < points; i++)
+                tail.add(start + new Point(i*distance, 0));
+            updateSnake();
+
+            function updateSnake() {
+                for (var i = 0; i < points-1; i++) {
+                    var segment = tail.segments[i];
+                    var nextSegment = segment.next;
+                    if (segment.point.getDistance(nextSegment.point) > distance) {
+                        var vector = segment.point - nextSegment.point;
+                        vector.length = distance;
+                        nextSegment.point = segment.point - vector;
+                    }
+                }
+
+                var forwards = tail.segments[0].point - tail.segments[1].point;
+                var smell = tail.segments[0].point - apple.position;
+                smell = smell.normalize();
+                smell.angle -= forwards.angle-90;
+
+                head.position = tail.firstSegment.point+forwards.normalize()*width/3;
+                head.rotate(forwards.angle-head.rotation+90);
+                pupils.position = smell.normalize()*4;
+
+                if (head.intersects(apple)) {
+                    points += 1;
+                    tail.add(tail.lastSegment);
+                    apple.position = new Point.random()*view.size;
+                }
+
+                if (head.intersects(tail)) {
+                    tail.strokeColor = "red";
+                    gameOver = true;
+                }
+
+                tail.smooth({type: "continuous"});
+            }
+
+            function onMouseMove(event) {
+                if (gameOver) {
+                    return;
+                }
+
+                tail.firstSegment.point = event.point;
+                updateSnake();
+            }
+        </script>
+    </head>
+    <body>
+        <canvas id="canvas" resize></canvas>
+    </body>
+</html>
